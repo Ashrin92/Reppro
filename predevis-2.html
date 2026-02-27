@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Repérage Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0e0e0e; --surface:#181818; --surface2:#222; --border:#2e2e2e;
+  --accent:#f5a623; --accent2:#e8380d; --text:#f0ede8; --muted:#888;
+  --green:#2ecc71; --blue:#3b9eff; --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;padding-bottom:40px;}
+.header{background:var(--surface);border-bottom:2px solid var(--accent);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header-logo{font-size:1.2rem;font-weight:800;letter-spacing:-0.5px;}
+.header-logo span{color:var(--accent);}
+.nav-btn{background:none;border:1.5px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.nav-btn.active,.nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+.header-nav{display:flex;gap:8px;}
+.page{display:none;padding:16px;}
+.page.active{display:block;}
+.section-title{font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+input[type=text],textarea,select{width:100%;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-family:'Space Mono',monospace;font-size:.82rem;outline:none;transition:border-color .2s;}
+input:focus,textarea:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:70px;}
+.photo-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;position:relative;margin-bottom:12px;}
+.photo-zone:hover{border-color:var(--accent);}
+.photo-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
+.photo-zone-icon{font-size:2rem;margin-bottom:6px;}
+.photo-zone-text{font-size:.78rem;color:var(--muted);}
+.photo-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.photo-thumb{aspect-ratio:1;border-radius:8px;overflow:hidden;position:relative;border:1.5px solid var(--border);}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-thumb-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);border:none;color:#fff;width:22px;height:22px;border-radius:50%;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.check-group{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.check-group.cols3{grid-template-columns:1fr 1fr 1fr;}
+.check-item{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 10px;cursor:pointer;transition:all .15s;user-select:none;}
+.check-item:hover{border-color:var(--accent);}
+.check-item.checked{border-color:var(--accent);background:rgba(245,166,35,.1);}
+.check-item input{display:none;}
+.check-box{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:.7rem;}
+.check-item.checked .check-box{background:var(--accent);border-color:var(--accent);color:#000;}
+.check-label{font-size:.78rem;font-weight:600;line-height:1.2;}
+.check-sub{font-size:.65rem;color:var(--muted);font-family:'Space Mono',monospace;}
+.qty-row{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;}
+.qty-label{flex:1;font-size:.8rem;font-weight:600;}
+.qty-ctrl{display:flex;align-items:center;gap:8px;}
+.qty-btn{width:28px;height:28px;background:var(--surface);border:1.5px solid var(--border);color:var(--text);border-radius:6px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.qty-btn:hover{border-color:var(--accent);color:var(--accent);}
+.qty-val{font-family:'Space Mono',monospace;font-size:1rem;font-weight:700;min-width:24px;text-align:center;color:var(--accent);}
+.cat-header{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:8px;transition:border-color .2s;user-select:none;}
+.cat-header:hover,.cat-header.open{border-color:var(--accent);}
+.cat-icon{font-size:1.3rem;}
+.cat-name{font-weight:700;font-size:.95rem;flex:1;}
+.cat-arrow{color:var(--muted);font-size:.8rem;transition:transform .2s;}
+.cat-header.open .cat-arrow{transform:rotate(90deg);color:var(--accent);}
+.cat-body{display:none;background:var(--surface);border:1.5px solid var(--border);border-top:none;border-radius:0 0 8px 8px;padding:14px;margin-top:-8px;margin-bottom:8px;}
+.cat-body.open{display:block;}
+.btn{display:block;width:100%;padding:13px;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;letter-spacing:.5px;transition:all .15s;text-align:center;}
+.btn-primary{background:var(--accent);color:#000;}
+.btn-primary:hover{background:#e09400;}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1.5px solid var(--border);}
+.btn-secondary:hover{border-color:var(--accent);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-wa{background:#25d366;color:#fff;}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.urgence-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
+.urgence-label{font-weight:700;font-size:.85rem;}
+.toggle{width:44px;height:24px;background:var(--border);border-radius:12px;position:relative;cursor:pointer;transition:background .2s;border:none;}
+.toggle.on{background:var(--accent2);}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s;}
+.toggle.on::after{left:23px;}
+.devis-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;transition:border-color .2s;}
+.devis-card:hover{border-color:var(--accent);}
+.devis-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.devis-card-addr{font-weight:700;font-size:.9rem;}
+.devis-card-date{font-size:.68rem;color:var(--muted);font-family:'Space Mono',monospace;}
+.devis-card-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.cat-pill{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:2px 8px;font-size:.65rem;font-weight:600;}
+.devis-card-actions{display:flex;gap:8px;}
+.devis-action-btn{flex:1;padding:7px;border-radius:6px;font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);transition:all .15s;}
+.devis-action-btn:hover{border-color:var(--accent);color:var(--accent);}
+.devis-action-btn.wa{border-color:#25d366;color:#25d366;background:rgba(37,211,102,.08);}
+.devis-action-btn.mail{border-color:var(--blue);color:var(--blue);background:rgba(59,158,255,.08);}
+.devis-action-btn.del{border-color:var(--accent2);color:var(--accent2);background:rgba(232,56,13,.08);}
+.badge-urgent{background:rgba(232,56,13,.15);color:var(--accent2);border:1px solid var(--accent2);border-radius:20px;padding:1px 7px;font-size:.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-icon{font-size:2.5rem;margin-bottom:12px;}
+.empty-text{font-size:.85rem;line-height:1.6;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#000;padding:10px 20px;border-radius:20px;font-weight:700;font-size:.82rem;z-index:999;transition:transform .3s;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;padding:16px;overflow-y:auto;}
+.modal-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
+.modal-box{background:var(--surface);border:1.5px solid var(--accent);border-radius:var(--radius);padding:16px;width:100%;max-width:480px;margin-top:20px;}
+.modal-title{font-size:1rem;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px;}
+.modal-close:hover{color:var(--accent2);}
+.divider{height:1px;background:var(--border);margin:14px 0;}
+
+/* ── PRINT / PDF ── */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #fff !important; color: #111 !important; font-family: Arial, sans-serif !important; font-size: 11pt; padding: 0; margin: 0; }
+  .header, .nav-btn, .photo-zone, .btn, .devis-card-actions, .modal-overlay, .toast { display: none !important; }
+  .page { display: block !important; padding: 0 !important; }
+  #page-history { display: none !important; }
+  #pdf-print-area { display: block !important; }
+  .pdf-header { background: #1a1a2e !important; color: #fff !important; padding: 16px 20px; margin-bottom: 20px; border-radius: 6px; }
+  .pdf-title { font-size: 18pt; font-weight: 900; letter-spacing: -0.5px; }
+  .pdf-title span { color: #f5a623; }
+  .pdf-meta { font-size: 10pt; margin-top: 6px; color: #ccc; }
+  .pdf-urgent { background: #e8380d !important; color: #fff !important; padding: 4px 10px; border-radius: 4px; font-weight: 700; font-size: 9pt; display: inline-block; margin-top: 6px; }
+  .pdf-section { margin-bottom: 16px; break-inside: avoid; }
+  .pdf-section-title { background: #f5a623 !important; color: #000 !important; padding: 4px 10px; font-weight: 700; font-size: 9pt; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; border-radius: 3px; }
+  .pdf-row { display: flex; gap: 8px; margin-bottom: 4px; font-size: 10pt; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+  .pdf-row-label { color: #666; min-width: 130px; font-size: 9pt; }
+  .pdf-row-val { font-weight: 600; }
+  .pdf-photos { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+  .pdf-photo { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
+  .pdf-obs { background: #f8f8f8 !important; padding: 10px; border-left: 3px solid #f5a623; font-size: 10pt; line-height: 1.6; border-radius: 0 4px 4px 0; }
+  .pdf-footer { margin-top: 24px; padding-top: 10px; border-top: 2px solid #1a1a2e; font-size: 9pt; color: #666; display: flex; justify-content: space-between; }
+  .pdf-footer strong { color: #111; }
+  @page { margin: 15mm; size: A4; }
+}
+#pdf-print-area { display: none; }
+</style>
+</head>
+<body>
+<!-- Zone d'impression PDF (cachée en mode normal, visible uniquement en print) -->
+<div id="pdf-print-area"></div>
+
+<div class="header">
+  <div class="header-logo">⚡ Repé<span>rage</span></div>
+  <div class="header-nav">
+    <button class="nav-btn active" onclick="showPage('new',this)">+ Nouveau</button>
+    <button class="nav-btn" onclick="showPage('history',this)">Historique</button>
+  </div>
+</div>
+
+<!-- PAGE NOUVEAU -->
+<div id="page-new" class="page active">
+
+  <div class="section-title">📍 Chantier</div>
+  <div class="card">
+    <div class="field"><label>Adresse / Référence</label>
+      <input type="text" id="f-adresse" placeholder="12 rue de la Paix, Bât A — Cage 3"></div>
+    <div class="field"><label>Contact (optionnel)</label>
+      <input type="text" id="f-contact" placeholder="M. Dupont — 06 12 34 56 78"></div>
+    <div class="urgence-row">
+      <span class="urgence-label">🔴 Intervention urgente</span>
+      <button class="toggle" id="tog-urg" onclick="toggleUrgence()"></button>
+    </div>
+  </div>
+
+  <div class="section-title">📸 Photos</div>
+  <div id="photo-preview" class="photo-preview" style="display:none"></div>
+  <div class="photo-zone">
+    <input type="file" id="photo-input" accept="image/*" multiple onchange="handlePhotos(event)">
+    <div class="photo-zone-icon">📷</div>
+    <div class="photo-zone-text">Appuie pour photographier ou choisir</div>
+  </div>
+
+  <div class="section-title">🔧 Travaux constatés</div>
+
+  <!-- ECLAIRAGE -->
+  <div class="cat-header" id="hdr-eclairage" onclick="toggleCat('eclairage')">
+    <span class="cat-icon">💡</span><span class="cat-name">Éclairage</span>
+    <span class="cat-arrow" id="arr-eclairage">▶</span>
+  </div>
+  <div class="cat-body" id="cat-eclairage">
+    <div class="section-title">Type de luminaire</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="type" value="Spot encastré"><span class="check-box">✓</span><span class="check-label">Spot<span class="check-sub">encastré</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="type" value="Plafonnier"><span class="check-box">✓</span><span class="check-label">Plafonnier</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="type" value="Tube fluo"><span class="check-box">✓</span><span class="check-label">Tube<span class="check-sub">fluo</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="type" value="Hublot"><span class="check-box">✓</span><span class="check-label">Hublot</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="type" value="Réglette"><span class="check-box">✓</span><span class="check-label">Réglette</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="type" value="Applique"><span class="check-box">✓</span><span class="check-label">Applique</span></label>
+    </div>
+    <div class="section-title">Culot / Douille</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="culot" value="GU10"><span class="check-box">✓</span><span class="check-label">GU10</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="culot" value="E27"><span class="check-box">✓</span><span class="check-label">E27</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="culot" value="E14"><span class="check-box">✓</span><span class="check-label">E14</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="culot" value="G13 T8"><span class="check-box">✓</span><span class="check-label">G13<span class="check-sub">tube T8</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="culot" value="G24 T5"><span class="check-box">✓</span><span class="check-label">G24<span class="check-sub">tube T5</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="culot" value="LED intégré"><span class="check-box">✓</span><span class="check-label">LED<span class="check-sub">intégré</span></span></label>
+    </div>
+    <div class="section-title">Diamètre spot</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="diam" value="Ø50mm"><span class="check-box">✓</span><span class="check-label">Ø50</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="diam" value="Ø75mm"><span class="check-box">✓</span><span class="check-label">Ø75</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="diam" value="Ø100mm"><span class="check-box">✓</span><span class="check-label">Ø100</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="diam" value="Ø125mm"><span class="check-box">✓</span><span class="check-label">Ø125</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="diam" value="Ø150mm"><span class="check-box">✓</span><span class="check-label">Ø150</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="diam" value="Autre Ø"><span class="check-box">✓</span><span class="check-label">Autre</span></label>
+    </div>
+    <div class="section-title">Longueur réglette LED (cm)</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="longueur" value="30cm"><span class="check-box">✓</span><span class="check-label">30 cm</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="longueur" value="60cm"><span class="check-box">✓</span><span class="check-label">60 cm</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="longueur" value="90cm"><span class="check-box">✓</span><span class="check-label">90 cm</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="longueur" value="120cm"><span class="check-box">✓</span><span class="check-label">120 cm</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="longueur" value="150cm"><span class="check-box">✓</span><span class="check-label">150 cm</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="longueur" value="Autre longueur"><span class="check-box">✓</span><span class="check-label">Autre</span></label>
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label>Longueur sur-mesure (cm)</label>
+      <input type="text" id="reglette-custom" placeholder="ex: 85 cm — préciser dans obs." oninput="updateReglette()">
+    </div>
+    <div class="section-title">Puissance actuelle</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="puiss" value="35W"><span class="check-box">✓</span><span class="check-label">35W</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="puiss" value="50W"><span class="check-box">✓</span><span class="check-label">50W</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="puiss" value="60W"><span class="check-box">✓</span><span class="check-label">60W</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="puiss" value="100W"><span class="check-box">✓</span><span class="check-label">100W</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="puiss" value="150W"><span class="check-box">✓</span><span class="check-label">150W</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="puiss" value="Inconnue"><span class="check-box">✓</span><span class="check-label">?</span></label>
+    </div>
+    <div class="section-title">Type de remplacement</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="rempl" value="Remplacement LED"><span class="check-box">✓</span><span class="check-label">Remplacement<span class="check-sub">LED</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="rempl" value="À l'identique"><span class="check-box">✓</span><span class="check-label">À l'identique</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="rempl" value="Nouveau point lumière"><span class="check-box">✓</span><span class="check-label">Nouveau point<span class="check-sub">lumière</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="eclairage" data-key="rempl" value="Câblage à refaire"><span class="check-box">✓</span><span class="check-label">Câblage<span class="check-sub">à refaire</span></span></label>
+    </div>
+    <div class="qty-row">
+      <span class="qty-label">💡 Quantité de points</span>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('eclairage',-1)">−</button>
+        <span class="qty-val" id="qty-eclairage">1</span>
+        <button class="qty-btn" onclick="changeQty('eclairage',1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRISES -->
+  <div class="cat-header" id="hdr-prises" onclick="toggleCat('prises')">
+    <span class="cat-icon">🔌</span><span class="cat-name">Prises & Circuits</span>
+    <span class="cat-arrow" id="arr-prises">▶</span>
+  </div>
+  <div class="cat-body" id="cat-prises">
+    <div class="section-title">Type de prise</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="type" value="2P+T 16A"><span class="check-box">✓</span><span class="check-label">2P+T<span class="check-sub">16A standard</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="type" value="20A spécialisée"><span class="check-box">✓</span><span class="check-label">20A<span class="check-sub">spécialisée</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="type" value="RJ45 réseau"><span class="check-box">✓</span><span class="check-label">RJ45<span class="check-sub">réseau</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="type" value="TV coaxiale"><span class="check-box">✓</span><span class="check-label">TV<span class="check-sub">coaxiale</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="type" value="USB chargeur"><span class="check-box">✓</span><span class="check-label">USB<span class="check-sub">chargeur</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="type" value="Étanche IP44"><span class="check-box">✓</span><span class="check-label">Étanche<span class="check-sub">IP44</span></span></label>
+    </div>
+    <div class="section-title">Travaux</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="travaux" value="Remplacement"><span class="check-box">✓</span><span class="check-label">Remplacement</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="travaux" value="Ajout prise"><span class="check-box">✓</span><span class="check-label">Ajout prise</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="travaux" value="Déplacement"><span class="check-box">✓</span><span class="check-label">Déplacement</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="travaux" value="Circuit dédié à créer"><span class="check-box">✓</span><span class="check-label">Circuit dédié<span class="check-sub">à créer</span></span></label>
+    </div>
+    <div class="section-title">Finition</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="finition" value="Blanc"><span class="check-box">✓</span><span class="check-label">Blanc</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="finition" value="Ivoire"><span class="check-box">✓</span><span class="check-label">Ivoire</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="prises" data-key="finition" value="Anthracite"><span class="check-box">✓</span><span class="check-label">Anthracite</span></label>
+    </div>
+    <div class="qty-row">
+      <span class="qty-label">🔌 Quantité</span>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('prises',-1)">−</button>
+        <span class="qty-val" id="qty-prises">1</span>
+        <button class="qty-btn" onclick="changeQty('prises',1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLEAU -->
+  <div class="cat-header" id="hdr-tableau" onclick="toggleCat('tableau')">
+    <span class="cat-icon">⚡</span><span class="cat-name">Tableau électrique</span>
+    <span class="cat-arrow" id="arr-tableau">▶</span>
+  </div>
+  <div class="cat-body" id="cat-tableau">
+    <div class="section-title">Type d'intervention</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="type" value="Remplacement disjoncteur"><span class="check-box">✓</span><span class="check-label">Remplacement<span class="check-sub">disjoncteur</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="type" value="Remplacement différentiel"><span class="check-box">✓</span><span class="check-label">Remplacement<span class="check-sub">différentiel</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="type" value="Ajout disjoncteur"><span class="check-box">✓</span><span class="check-label">Ajout<span class="check-sub">disjoncteur</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="type" value="Tableau complet"><span class="check-box">✓</span><span class="check-label">Tableau<span class="check-sub">complet</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="type" value="Mise en conformité"><span class="check-box">✓</span><span class="check-label">Mise en<span class="check-sub">conformité</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="type" value="Parafoudre"><span class="check-box">✓</span><span class="check-label">Parafoudre</span></label>
+    </div>
+    <div class="section-title">Calibre disjoncteur</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="calibre" value="10A"><span class="check-box">✓</span><span class="check-label">10A</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="calibre" value="16A"><span class="check-box">✓</span><span class="check-label">16A</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="calibre" value="20A"><span class="check-box">✓</span><span class="check-label">20A</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="calibre" value="25A"><span class="check-box">✓</span><span class="check-label">25A</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="calibre" value="32A"><span class="check-box">✓</span><span class="check-label">32A</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="calibre" value="63A"><span class="check-box">✓</span><span class="check-label">63A</span></label>
+    </div>
+    <div class="section-title">Type différentiel</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="diff" value="Type AC 30mA"><span class="check-box">✓</span><span class="check-label">Type AC<span class="check-sub">30mA</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="diff" value="Type A 30mA"><span class="check-box">✓</span><span class="check-label">Type A<span class="check-sub">30mA</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="diff" value="Type F 30mA PAC"><span class="check-box">✓</span><span class="check-label">Type F<span class="check-sub">30mA PAC</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="tableau" data-key="diff" value="Type B 30mA VE"><span class="check-box">✓</span><span class="check-label">Type B<span class="check-sub">VE/onduleur</span></span></label>
+    </div>
+  </div>
+
+  <!-- DETECTEURS -->
+  <div class="cat-header" id="hdr-detecteurs" onclick="toggleCat('detecteurs')">
+    <span class="cat-icon">👁</span><span class="cat-name">Détecteurs & Commandes</span>
+    <span class="cat-arrow" id="arr-detecteurs">▶</span>
+  </div>
+  <div class="cat-body" id="cat-detecteurs">
+    <div class="section-title">Type d'appareil</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="type" value="Détecteur IR"><span class="check-box">✓</span><span class="check-label">Détecteur<span class="check-sub">mouvement IR</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="type" value="Présence HF 360°"><span class="check-box">✓</span><span class="check-label">Présence<span class="check-sub">HF 360°</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="type" value="Va-et-vient"><span class="check-box">✓</span><span class="check-label">Va-et-vient</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="type" value="Télérupteur"><span class="check-box">✓</span><span class="check-label">Télérupteur</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="type" value="Minuterie"><span class="check-box">✓</span><span class="check-label">Minuterie</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="type" value="Variateur"><span class="check-box">✓</span><span class="check-label">Variateur</span></label>
+    </div>
+    <div class="section-title">Emplacement</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="lieu" value="Couloir"><span class="check-box">✓</span><span class="check-label">Couloir</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="lieu" value="Escalier"><span class="check-box">✓</span><span class="check-label">Escalier</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="lieu" value="Parking"><span class="check-box">✓</span><span class="check-label">Parking</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="lieu" value="Extérieur"><span class="check-box">✓</span><span class="check-label">Extérieur</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="lieu" value="Cave"><span class="check-box">✓</span><span class="check-label">Cave</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="detecteurs" data-key="lieu" value="Local commun"><span class="check-box">✓</span><span class="check-label">Local<span class="check-sub">commun</span></span></label>
+    </div>
+    <div class="qty-row">
+      <span class="qty-label">👁 Quantité</span>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('detecteurs',-1)">−</button>
+        <span class="qty-val" id="qty-detecteurs">1</span>
+        <button class="qty-btn" onclick="changeQty('detecteurs',1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPAREILLAGE -->
+  <div class="cat-header" id="hdr-appareillage" onclick="toggleCat('appareillage')">
+    <span class="cat-icon">🎛</span><span class="cat-name">Appareillage</span>
+    <span class="cat-arrow" id="arr-appareillage">▶</span>
+  </div>
+  <div class="cat-body" id="cat-appareillage">
+    <div class="section-title">Type d'appareil</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="type" value="Interrupteur simple"><span class="check-box">✓</span><span class="check-label">Interrupteur<span class="check-sub">simple</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="type" value="Va-et-vient"><span class="check-box">✓</span><span class="check-label">Va-et-vient</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="type" value="Bouton poussoir"><span class="check-box">✓</span><span class="check-label">Bouton<span class="check-sub">poussoir</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="type" value="Minuterie"><span class="check-box">✓</span><span class="check-label">Minuterie</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="type" value="Détecteur mural IR"><span class="check-box">✓</span><span class="check-label">Détecteur<span class="check-sub">mural IR</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="type" value="Détecteur plafonnier HF"><span class="check-box">✓</span><span class="check-label">Plafonnier<span class="check-sub">HF 360°</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="type" value="Variateur"><span class="check-box">✓</span><span class="check-label">Variateur</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="type" value="Télérupteur"><span class="check-box">✓</span><span class="check-label">Télérupteur</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="type" value="Sonnette / carillon"><span class="check-box">✓</span><span class="check-label">Sonnette<span class="check-sub">carillon</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="type" value="Contacteur jour/nuit"><span class="check-box">✓</span><span class="check-label">Contacteur<span class="check-sub">jour/nuit</span></span></label>
+    </div>
+    <div class="section-title">Travaux</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="travaux" value="Remplacement"><span class="check-box">✓</span><span class="check-label">Remplacement</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="travaux" value="Ajout"><span class="check-box">✓</span><span class="check-label">Ajout</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="travaux" value="Déplacement"><span class="check-box">✓</span><span class="check-label">Déplacement</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="travaux" value="Câblage à refaire"><span class="check-box">✓</span><span class="check-label">Câblage<span class="check-sub">à refaire</span></span></label>
+    </div>
+    <div class="section-title">Finition</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="finition" value="Blanc"><span class="check-box">✓</span><span class="check-label">Blanc</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="finition" value="Ivoire"><span class="check-box">✓</span><span class="check-label">Ivoire</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="appareillage" data-key="finition" value="Anthracite"><span class="check-box">✓</span><span class="check-label">Anthracite</span></label>
+    </div>
+    <div class="qty-row">
+      <span class="qty-label">🎛 Quantité</span>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('appareillage',-1)">−</button>
+        <span class="qty-val" id="qty-appareillage">1</span>
+        <button class="qty-btn" onclick="changeQty('appareillage',1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHEMINEMENT -->
+  <div class="cat-header" id="hdr-cheminement" onclick="toggleCat('cheminement')">
+    <span class="cat-icon">🏗</span><span class="cat-name">Cheminement & Pose</span>
+    <span class="cat-arrow" id="arr-cheminement">▶</span>
+  </div>
+  <div class="cat-body" id="cat-cheminement">
+
+    <div class="section-title">Type de gaine / conduit</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="gaine" value="Gaine ICT (grise)"><span class="check-box">✓</span><span class="check-label">ICT<span class="check-sub">grise souple</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="gaine" value="Gaine ICTA (annelée)"><span class="check-box">✓</span><span class="check-label">ICTA<span class="check-sub">annelée</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="gaine" value="Tube IRL (rigide)"><span class="check-box">✓</span><span class="check-label">IRL<span class="check-sub">rigide lisse</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="gaine" value="Tube IRO (rigide ext.)"><span class="check-box">✓</span><span class="check-label">IRO<span class="check-sub">rigide extérieur</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="gaine" value="Conduit ICD (encastré dalle)"><span class="check-box">✓</span><span class="check-label">ICD<span class="check-sub">sous dalle</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="gaine" value="Gaine TPC (enterrée)"><span class="check-box">✓</span><span class="check-label">TPC<span class="check-sub">enterrée rouge</span></span></label>
+    </div>
+
+    <div class="section-title">Diamètre conduit</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="diam_gaine" value="Ø16mm"><span class="check-box">✓</span><span class="check-label">Ø16</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="diam_gaine" value="Ø20mm"><span class="check-box">✓</span><span class="check-label">Ø20</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="diam_gaine" value="Ø25mm"><span class="check-box">✓</span><span class="check-label">Ø25</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="diam_gaine" value="Ø32mm"><span class="check-box">✓</span><span class="check-label">Ø32</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="diam_gaine" value="Ø40mm"><span class="check-box">✓</span><span class="check-label">Ø40</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="diam_gaine" value="Ø50mm"><span class="check-box">✓</span><span class="check-label">Ø50</span></label>
+    </div>
+
+    <div class="section-title">Chemin de câbles / goulottes</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="cheminage" value="Goulotte PVC apparent"><span class="check-box">✓</span><span class="check-label">Goulotte PVC<span class="check-sub">apparent</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="cheminage" value="Goulotte plinthe"><span class="check-box">✓</span><span class="check-label">Goulotte<span class="check-sub">plinthe</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="cheminage" value="Chemin de câbles métal"><span class="check-box">✓</span><span class="check-label">Chemin câbles<span class="check-sub">métal</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="cheminage" value="Chemin de câbles fil (cablofil)"><span class="check-box">✓</span><span class="check-label">Cablofil<span class="check-sub">fil acier</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="cheminage" value="Moulure bois"><span class="check-box">✓</span><span class="check-label">Moulure<span class="check-sub">bois</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="cheminage" value="Passage sous faux-plafond"><span class="check-box">✓</span><span class="check-label">Faux-plafond<span class="check-sub">passage</span></span></label>
+    </div>
+
+    <div class="section-title">Grillage avertisseur</div>
+    <div class="check-group cols3">
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="grillage" value="Grillage rouge (HTA)"><span class="check-box">✓</span><span class="check-label">Rouge<span class="check-sub">HTA</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="grillage" value="Grillage rouge (BT)"><span class="check-box">✓</span><span class="check-label">Rouge<span class="check-sub">BT</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="grillage" value="Grillage vert (télécom)"><span class="check-box">✓</span><span class="check-label">Vert<span class="check-sub">télécom</span></span></label>
+    </div>
+
+    <div class="section-title">Tranchée</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="tranchee" value="Tranchée à réaliser"><span class="check-box">✓</span><span class="check-label">À réaliser</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="tranchee" value="Tranchée existante"><span class="check-box">✓</span><span class="check-label">Existante</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="tranchee" value="Remblai sable + grillage"><span class="check-box">✓</span><span class="check-label">Remblai<span class="check-sub">sable + grillage</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="tranchee" value="Remblai béton maigre"><span class="check-box">✓</span><span class="check-label">Béton<span class="check-sub">maigre</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="tranchee" value="Carottage / percement mur"><span class="check-box">✓</span><span class="check-label">Carottage<span class="check-sub">percement</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="tranchee" value="Saignée plâtre / béton"><span class="check-box">✓</span><span class="check-label">Saignée<span class="check-sub">plâtre/béton</span></span></label>
+    </div>
+
+    <div class="section-title">Dimensions tranchée (m)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div class="field" style="margin:0">
+        <label>Longueur (m)</label>
+        <input type="text" id="tranchee-long" placeholder="ex: 12">
+      </div>
+      <div class="field" style="margin:0">
+        <label>Profondeur (cm)</label>
+        <input type="text" id="tranchee-prof" placeholder="ex: 60">
+      </div>
+    </div>
+
+    <div class="section-title">Type de pose</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="pose" value="Encastré sous enduit"><span class="check-box">✓</span><span class="check-label">Encastré<span class="check-sub">sous enduit</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="pose" value="Apparent fixé agrafes"><span class="check-box">✓</span><span class="check-label">Apparent<span class="check-sub">agrafes</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="pose" value="Sous dalle béton"><span class="check-box">✓</span><span class="check-label">Sous dalle<span class="check-sub">béton</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="cheminement" data-key="pose" value="Enterré pleine terre"><span class="check-box">✓</span><span class="check-label">Enterré<span class="check-sub">pleine terre</span></span></label>
+    </div>
+
+    <div class="qty-row">
+      <span class="qty-label">📏 Linéaire estimé (ml)</span>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('cheminement',-5)">−</button>
+        <span class="qty-val" id="qty-cheminement">5</span>
+        <button class="qty-btn" onclick="changeQty('cheminement',5)">+</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DIVERS -->
+  <div class="cat-header" id="hdr-divers" onclick="toggleCat('divers')">
+    <span class="cat-icon">🔧</span><span class="cat-name">Divers / Autre</span>
+    <span class="cat-arrow" id="arr-divers">▶</span>
+  </div>
+  <div class="cat-body" id="cat-divers">
+    <div class="section-title">Travaux divers</div>
+    <div class="check-group">
+      <label class="check-item"><input type="checkbox" data-cat="divers" data-key="type" value="Passage de câbles"><span class="check-box">✓</span><span class="check-label">Passage<span class="check-sub">de câbles</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="divers" data-key="type" value="Cheminage goulotte"><span class="check-box">✓</span><span class="check-label">Cheminage<span class="check-sub">goulotte</span></span></label>
+      <label class="check-item"><input type="checkbox" data-cat="divers" data-key="type" value="Interphonie"><span class="check-box">✓</span><span class="check-label">Interphonie</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="divers" data-key="type" value="Borne VE"><span class="check-box">✓</span><span class="check-label">Borne VE</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="divers" data-key="type" value="VMC"><span class="check-box">✓</span><span class="check-label">VMC</span></label>
+      <label class="check-item"><input type="checkbox" data-cat="divers" data-key="type" value="Autre"><span class="check-box">✓</span><span class="check-label">Autre<span class="check-sub">voir obs.</span></span></label>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:16px">📝 Observations</div>
+  <div class="card">
+    <textarea id="f-obs" placeholder="Notes, difficultés d'accès, matériel à prévoir, état installation..."></textarea>
+  </div>
+
+  <div class="section-title">📤 Enregistrer & Envoyer</div>
+  <div class="card">
+    <button class="btn btn-primary" style="margin-bottom:10px" onclick="saveAndSend()">💾 Enregistrer le repérage</button>
+    <div class="btn-row">
+      <button class="btn btn-wa" onclick="sendWA(null)">📱 WhatsApp</button>
+      <button class="btn btn-blue" onclick="sendMail(null)">✉️ Email</button>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn" style="background:#e74c3c;color:#fff" onclick="exportPDF(null)">📄 Exporter PDF</button>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn btn-secondary" onclick="resetForm()">🗑 Effacer le formulaire</button>
+    </div>
+  </div>
+
+</div><!-- fin page-new -->
+
+<!-- PAGE HISTORIQUE -->
+<div id="page-history" class="page">
+  <div class="section-title">📋 Repérages enregistrés</div>
+  <div id="history-list"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal-box">
+    <div class="modal-title">
+      <span id="modal-addr">Détail</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div class="divider"></div>
+    <div class="btn-row">
+      <button class="btn btn-wa" onclick="sendWA(currentModal)">📱 WhatsApp</button>
+      <button class="btn btn-blue" onclick="sendMail(currentModal)">✉️ Email</button>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn" style="background:#e74c3c;color:#fff" onclick="exportPDF(currentModal)">📄 Exporter PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Enregistré</div>
+
+<script>
+'use strict';
+const STORAGE_KEY = 'predevis_pro_v1';
+let photos = [], urgence = false, currentModal = null;
+let quantities = {eclairage:1, prises:1, detecteurs:1, appareillage:1, cheminement:5, divers:1};
+
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(id==='history') renderHistory();
+}
+
+function toggleCat(id) {
+  const body = document.getElementById('cat-'+id);
+  const hdr = document.getElementById('hdr-'+id);
+  const arr = document.getElementById('arr-'+id);
+  const open = body.classList.contains('open');
+  body.classList.toggle('open',!open);
+  hdr.classList.toggle('open',!open);
+}
+
+function toggleUrgence() {
+  urgence = !urgence;
+  document.getElementById('tog-urg').classList.toggle('on', urgence);
+}
+
+document.addEventListener('change', function(e) {
+  if(e.target.type==='checkbox' && e.target.dataset.cat) {
+    e.target.closest('.check-item').classList.toggle('checked', e.target.checked);
+  }
+});
+
+function changeQty(cat, d) {
+  quantities[cat] = Math.max(1, quantities[cat]+d);
+  document.getElementById('qty-'+cat).textContent = quantities[cat];
+}
+
+function handlePhotos(e) {
+  Array.from(e.target.files).forEach(file => {
+    const r = new FileReader();
+    r.onload = ev => { photos.push(ev.target.result); renderPhotos(); };
+    r.readAsDataURL(file);
+  });
+  e.target.value='';
+}
+
+function renderPhotos() {
+  const el = document.getElementById('photo-preview');
+  if(!photos.length){el.style.display='none';return;}
+  el.style.display='grid';
+  el.innerHTML = photos.map((src,i)=>`
+    <div class="photo-thumb">
+      <img src="${src}">
+      <button class="photo-thumb-del" onclick="removePhoto(${i})">✕</button>
+    </div>`).join('');
+}
+
+function removePhoto(i){ photos.splice(i,1); renderPhotos(); }
+
+function collectForm() {
+  const checks = {};
+  document.querySelectorAll('input[type=checkbox][data-cat]:checked').forEach(cb=>{
+    const {cat,key} = cb.dataset;
+    if(!checks[cat]) checks[cat]={};
+    if(!checks[cat][key]) checks[cat][key]=[];
+    checks[cat][key].push(cb.value);
+  });
+  Object.keys(quantities).forEach(cat=>{ if(checks[cat]) checks[cat]._qty=quantities[cat]; });
+  // Longueur réglette sur-mesure
+  const regletteCustom = document.getElementById('reglette-custom').value.trim();
+  if(regletteCustom) {
+    if(!checks.eclairage) checks.eclairage={};
+    checks.eclairage.reglette_custom = regletteCustom+' cm';
+  }
+  // Dimensions tranchée
+  const tLong = document.getElementById('tranchee-long').value.trim();
+  const tProf = document.getElementById('tranchee-prof').value.trim();
+  if(tLong || tProf) {
+    if(!checks.cheminement) checks.cheminement={};
+    checks.cheminement.tranchee_dims = (tLong ? tLong+'m long.' : '') + (tLong && tProf ? ' × ' : '') + (tProf ? tProf+'cm prof.' : '');
+  }
+  return {
+    id: Date.now(),
+    date: new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    adresse: document.getElementById('f-adresse').value||'Adresse non renseignée',
+    contact: document.getElementById('f-contact').value,
+    urgence, observations: document.getElementById('f-obs').value,
+    checks, photos: photos.slice(0,6)
+  };
+}
+
+const CAT_LABELS = {eclairage:'💡 ÉCLAIRAGE',prises:'🔌 PRISES & CIRCUITS',tableau:'⚡ TABLEAU',detecteurs:'👁 DÉTECTEURS',appareillage:'🎛 APPAREILLAGE',cheminement:'🏗 CHEMINEMENT & POSE',divers:'🔧 DIVERS'};
+const KEY_LABELS = {type:'Type',culot:'Culot',diam:'Diamètre',longueur:'Longueur',puiss:'Puissance',rempl:'Remplacement',travaux:'Travaux',finition:'Finition',calibre:'Calibre',diff:'Différentiel',lieu:'Emplacement',gaine:'Gaine/conduit',diam_gaine:'Ø conduit',cheminage:'Cheminage',grillage:'Grillage',tranchee:'Tranchée',pose:'Type de pose',_qty:'Quantité/Linéaire',reglette_custom:'Longueur sur-mesure',tranchee_dims:'Dimensions tranchée'};
+
+function formatDevis(d) {
+  let t = `⚡ REPÉRAGE\n${d.adresse}\n📅 ${d.date}\n`;
+  if(d.contact) t+=`👤 ${d.contact}\n`;
+  if(d.urgence) t+=`🔴 INTERVENTION URGENTE\n`;
+  t+='\n';
+  Object.entries(d.checks||{}).forEach(([cat,keys])=>{
+    t+=`${CAT_LABELS[cat]||cat}\n${'─'.repeat(20)}\n`;
+    Object.entries(keys).forEach(([k,v])=>{
+      t+=`  ${KEY_LABELS[k]||k} : ${Array.isArray(v)?v.join(', '):v}\n`;
+    });
+    t+='\n';
+  });
+  if(d.observations) t+=`📝 OBSERVATIONS\n${d.observations}\n\n`;
+  t+=`Services Multi-Techniques\nGuillaume — Électricien\n`;
+  return t;
+}
+
+function getAll(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[];}catch{return[];} }
+function saveAll(a){ localStorage.setItem(STORAGE_KEY,JSON.stringify(a.slice(0,50))); }
+
+function saveAndSend() {
+  const d = collectForm();
+  const all = getAll(); all.unshift(d); saveAll(all);
+  showToast('✅ Repérage enregistré !');
+}
+
+function sendWA(d) {
+  if(!d){ d=collectForm(); const a=getAll();a.unshift(d);saveAll(a); }
+  window.open('https://wa.me/?text='+encodeURIComponent(formatDevis(d)),'_blank');
+}
+
+function sendMail(d) {
+  if(!d){ d=collectForm(); const a=getAll();a.unshift(d);saveAll(a); }
+  const subj = encodeURIComponent('Repérage — '+d.adresse+(d.urgence?' [URGENT]':''));
+  window.location.href='mailto:?subject='+subj+'&body='+encodeURIComponent(formatDevis(d));
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast'); t.textContent=msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function exportPDF(devis) {
+  const d = devis || collectForm();
+  if(!devis){ const a=getAll(); a.unshift(d); saveAll(a); }
+
+  const KEY_LABELS_FR = {
+    type:'Type', culot:'Culot', diam:'Diamètre', longueur:'Longueur',
+    puiss:'Puissance', rempl:'Remplacement', travaux:'Travaux', finition:'Finition',
+    calibre:'Calibre', diff:'Différentiel', lieu:'Emplacement',
+    gaine:'Gaine/conduit', diam_gaine:'Ø conduit', cheminage:'Cheminage',
+    grillage:'Grillage avert.', tranchee:'Tranchée', pose:'Type de pose',
+    _qty:'Quantité / Linéaire', reglette_custom:'Longueur sur-mesure',
+    tranchee_dims:'Dimensions tranchée'
+  };
+
+  const CAT_LABELS_FR = {
+    eclairage:'💡 Éclairage', prises:'🔌 Prises & Circuits',
+    tableau:'⚡ Tableau électrique', detecteurs:'👁 Détecteurs & Commandes',
+    appareillage:'🎛 Appareillage', cheminement:'🏗 Cheminement & Pose',
+    divers:'🔧 Divers'
+  };
+
+  let sectionsHTML = '';
+
+  // Photos
+  if(d.photos?.length) {
+    sectionsHTML += `<div class="pdf-section">
+      <div class="pdf-section-title">📸 Photos de repérage</div>
+      <div class="pdf-photos">
+        ${d.photos.map(src=>`<img class="pdf-photo" src="${src}">`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Checks
+  Object.entries(d.checks||{}).forEach(([cat, keys]) => {
+    const rows = Object.entries(keys).map(([k,v]) => `
+      <div class="pdf-row">
+        <span class="pdf-row-label">${KEY_LABELS_FR[k]||k}</span>
+        <span class="pdf-row-val">${Array.isArray(v)?v.join(', '):v}</span>
+      </div>`).join('');
+    sectionsHTML += `<div class="pdf-section">
+      <div class="pdf-section-title">${CAT_LABELS_FR[cat]||cat}</div>
+      ${rows}
+    </div>`;
+  });
+
+  // Observations
+  if(d.observations) {
+    sectionsHTML += `<div class="pdf-section">
+      <div class="pdf-section-title">📝 Observations</div>
+      <div class="pdf-obs">${d.observations.replace(/\n/g,'<br>')}</div>
+    </div>`;
+  }
+
+  const urgHTML = d.urgence ? '<div class="pdf-urgent">🔴 INTERVENTION URGENTE</div>' : '';
+
+  document.getElementById('pdf-print-area').innerHTML = `
+    <div class="pdf-header">
+      <div class="pdf-title">⚡ Repé<span>rage</span></div>
+      <div class="pdf-meta">
+        📍 ${d.adresse}<br>
+        📅 ${d.date}
+        ${d.contact ? '<br>👤 '+d.contact : ''}
+      </div>
+      ${urgHTML}
+    </div>
+    ${sectionsHTML}
+    <div class="pdf-footer">
+      <div><strong>Services Multi-Techniques</strong><br>Guillaume — Électricien</div>
+      <div style="text-align:right">Repérage N° ${d.id}<br>${d.date}</div>
+    </div>
+  `;
+
+  // Masquer l'app, afficher la zone PDF, imprimer, restaurer
+  document.querySelectorAll('.page, .header').forEach(el => el.style.display='none');
+  document.getElementById('pdf-print-area').style.display = 'block';
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      document.getElementById('pdf-print-area').style.display = 'none';
+      document.querySelectorAll('.header').forEach(el => el.style.display='flex');
+      document.querySelectorAll('.page.active').forEach(el => el.style.display='block');
+      // S'il n'y a plus de page active, réactiver new
+      if(!document.querySelector('.page.active')) {
+        document.getElementById('page-new').style.display='block';
+      }
+    }, 500);
+  }, 200);
+}
+
+
+function updateReglette() {
+  // Met à jour visuellement la valeur saisie (rien à faire, collectForm la lit)
+}
+
+function resetForm() {
+  if(!confirm('Effacer le formulaire ?')) return;
+  ['f-adresse','f-contact','f-obs','reglette-custom','tranchee-long','tranchee-prof'].forEach(id=>document.getElementById(id).value='');
+  document.querySelectorAll('input[type=checkbox][data-cat]').forEach(cb=>{
+    cb.checked=false; cb.closest('.check-item').classList.remove('checked');
+  });
+  photos=[]; urgence=false;
+  quantities={eclairage:1,prises:1,detecteurs:1,appareillage:1,cheminement:5,divers:1};
+  document.getElementById('tog-urg').classList.remove('on');
+  ['eclairage','prises','detecteurs','appareillage'].forEach(c=>document.getElementById('qty-'+c).textContent=1);
+  document.getElementById('qty-cheminement').textContent=5;
+  renderPhotos();
+}
+
+function renderHistory() {
+  const all = getAll();
+  const el = document.getElementById('history-list');
+  if(!all.length){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Aucun repérage enregistré.<br>Crée-en un depuis "+ Nouveau".</div></div>`;
+    return;
+  }
+  const icons={eclairage:'💡',prises:'🔌',tableau:'⚡',detecteurs:'👁',divers:'🔧'};
+  el.innerHTML=all.map(d=>`
+    <div class="devis-card">
+      <div class="devis-card-header">
+        <div>
+          <div class="devis-card-addr">${d.urgence?'<span class="badge-urgent">URGENT</span> ':''}${d.adresse}</div>
+          ${d.contact?`<div style="font-size:.72rem;color:var(--muted);margin-top:2px">${d.contact}</div>`:''}
+        </div>
+        <div class="devis-card-date">${d.date}</div>
+      </div>
+      <div class="devis-card-cats">
+        ${Object.keys(d.checks||{}).map(c=>`<span class="cat-pill">${icons[c]||'🔧'} ${c}</span>`).join('')}
+        ${d.photos?.length?`<span class="cat-pill">📸 ${d.photos.length}</span>`:''}
+      </div>
+      <div class="devis-card-actions">
+        <button class="devis-action-btn" onclick="openModal(${d.id})">👁 Voir</button>
+        <button class="devis-action-btn wa" onclick='sendWA(${JSON.stringify(d)})'>📱 WA</button>
+        <button class="devis-action-btn mail" onclick='sendMail(${JSON.stringify(d)})'>✉️ Mail</button>
+        <button class="devis-action-btn del" onclick="delDevis(${d.id})">🗑</button>
+        <button class="devis-action-btn" style="border-color:#e74c3c;color:#e74c3c;background:rgba(231,76,60,.08)" onclick='exportPDF(${JSON.stringify(d)})'>📄 PDF</button>
+      </div>
+    </div>`).join('');
+}
+
+function delDevis(id) {
+  if(!confirm('Supprimer ?')) return;
+  saveAll(getAll().filter(d=>d.id!==id));
+  renderHistory(); showToast('🗑 Supprimé');
+}
+
+function openModal(id) {
+  const d = getAll().find(x=>x.id===id);
+  if(!d) return;
+  currentModal = d;
+  document.getElementById('modal-addr').textContent = d.adresse;
+  let html='';
+  if(d.urgence) html+=`<div style="color:var(--accent2);font-weight:700;margin-bottom:10px">🔴 INTERVENTION URGENTE</div>`;
+  if(d.contact) html+=`<div style="font-size:.82rem;color:var(--muted);margin-bottom:10px">👤 ${d.contact}</div>`;
+  if(d.photos?.length){
+    html+=`<div class="photo-preview" style="margin-bottom:12px">`;
+    d.photos.forEach(s=>html+=`<div class="photo-thumb"><img src="${s}"></div>`);
+    html+=`</div>`;
+  }
+  Object.entries(d.checks||{}).forEach(([cat,keys])=>{
+    html+=`<div style="margin-bottom:10px"><div class="section-title">${CAT_LABELS[cat]||cat}</div>`;
+    Object.entries(keys).forEach(([k,v])=>{
+      html+=`<div style="display:flex;gap:8px;font-size:.8rem;margin-bottom:4px">
+        <span style="color:var(--muted);min-width:90px">${KEY_LABELS[k]||k}</span>
+        <span style="font-weight:600">${Array.isArray(v)?v.join(', '):v}</span></div>`;
+    });
+    html+=`</div>`;
+  });
+  if(d.observations) html+=`<div class="divider"></div><div class="section-title">📝 Observations</div><div style="font-size:.82rem;line-height:1.6;font-family:'Space Mono',monospace">${d.observations}</div>`;
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal-detail').classList.add('open');
+}
+
+function closeModal(){
+  document.getElementById('modal-detail').classList.remove('open');
+  currentModal=null;
+}
+</script>
+</body>
+</html>
